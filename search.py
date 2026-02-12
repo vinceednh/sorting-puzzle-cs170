@@ -62,18 +62,20 @@ def misplaced_tiles_heuristic(state, goal_state):
 
     return count
 
-def manhattan_distance_heuristic(state, goal_state):
+def manhattan_distance_heuristic(state, goal_positions):
+    # This is the sum of distances for each tile to the goal
     distance = 0
     for i in range(state.size):
         for j in range(state.size):
             value = state.board[i][j]
 
             if value != 0:
+                # Gets the goal position for the current tile
+                goal_position = goal_positions[value]
+                goal_row = goal_position[0]
+                goal_col = goal_position[1]
 
-                target = goal_state[value]
-                goal_row = target[0]
-                goal_col = target[1]
-
+                # Manhattan distance
                 distance += abs(i - goal_row) + abs(j - goal_col)
 
     return distance
@@ -136,6 +138,7 @@ def a_star_search(start_state, goal_state, heuristic, show_output = True):
             else:
                 h = 0
 
+            # g(n) + h(n) is the priority for A* search
             priority = n.cost + h
             heapq.heappush(frontier, (priority, counter, n))
             counter += 1
