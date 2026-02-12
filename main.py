@@ -1,5 +1,5 @@
 from puzzle import PuzzleState
-from search import uniform_cost_search
+from search import uniform_cost_search, a_star_search
 
 # This makes the size of the board so it can be run with multiple different sizes
 def make_goal(size):
@@ -29,8 +29,21 @@ def main():
     goal = make_goal(size)
     start_state = PuzzleState(board, size)
 
-    # Uniform Cost Search
-    result, nodes_expanded, max_queue_size = uniform_cost_search(start_state, goal)
+    print("Select algorithm: ")
+    choice = input("Choice: ")
+
+    if choice == "1":
+        # Uniform Cost Search
+        result, nodes_expanded, max_queue_size = uniform_cost_search(start_state, goal, show_output = True)
+    elif choice == "2":
+        # A* Search with Misplaced Tiles Heuristic
+        result, nodes_expanded, max_queue_size = a_star_search(start_state, goal, heuristic = 'misplaced', show_output = True)
+    elif choice == "3":
+        # A* Search with Manhattan Distance Heuristic
+        result, nodes_expanded, max_queue_size = a_star_search(start_state, goal, heuristic = 'manhattan', show_output = True)
+    else:
+        print("Invalid choice. Exiting.")
+        return
 
     if result is None:
         print("No solution found.")
