@@ -47,3 +47,14 @@ class PuzzleState:
                 neighbors.append(new_state)
 
         return neighbors
+    
+    # This checks if the current state is the goal state
+    def is_goal (self, goal):
+        return self.board == goal
+    
+    # Converts each row of the board to a tuple and returns a tuple of those tuples, so that the state can be stored in a set for visited states since lists can't be stored in sets but tuples can
+    def to_tuple (self):
+        result = []
+        for row in self.board:
+            result.append(tuple(row))
+        return tuple(result)
