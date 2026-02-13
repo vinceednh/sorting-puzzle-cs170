@@ -1,4 +1,5 @@
 import time
+import matplotlib.pyplot as plt
 from puzzle import PuzzleState
 from search import uniform_cost_search, a_star_search
 
@@ -53,25 +54,67 @@ def main():
         show_output_misplaced = False
         show_output_manhattan = False
 
+    algorithms = ["UCS", "A* Misplaced", "A* Manhattan"]
+    nodes_expanded_list = []
+    max_queue_size_list = []
+    times = []
+
     # All of these algorithms use time() to measure the time taken
     # Uniform Cost Search
     start_time = time.time()
-    result, nodes_expanded, max_queue_size = uniform_cost_search(start_state, goal, show_output_ucs)
+    result_ucs, nodes_expanded_ucs, max_queue_size_ucs = uniform_cost_search(start_state, goal, show_output_ucs)
     end_time = time.time()
     duration = end_time - start_time
+    nodes_expanded_list.append(nodes_expanded_ucs)
+    max_queue_size_list.append(max_queue_size_ucs)
+    times.append(duration)
+
+    if show_output_ucs:
+        print(f"Execution time: {duration:.2f} seconds")
 
     # A* Search with Misplaced Tiles Heuristic
     start_time = time.time()
-    result, nodes_expanded, max_queue_size = a_star_search(start_state, goal, 'misplaced', show_output_misplaced)
+    result_misplaced, nodes_expanded_misplaced, max_queue_size_misplaced = a_star_search(start_state, goal, 'misplaced', show_output_misplaced)
     end_time = time.time()
     duration = end_time - start_time
+    nodes_expanded_list.append(nodes_expanded_misplaced)
+    max_queue_size_list.append(max_queue_size_misplaced)
+    times.append(duration)
+
+    if show_output_misplaced:
+        print(f"Execution time: {duration:.2f} seconds")
 
     # A* Search with Manhattan Distance Heuristic
     start_time = time.time()
-    result, nodes_expanded, max_queue_size = a_star_search(start_state, goal, 'manhattan', show_output_manhattan)
+    result_manhattan, nodes_expanded_manhattan, max_queue_size_manhattan = a_star_search(start_state, goal, 'manhattan', show_output_manhattan)
     end_time = time.time()
     duration = end_time - start_time
+    nodes_expanded_list.append(nodes_expanded_manhattan)
+    max_queue_size_list.append(max_queue_size_manhattan)
+    times.append(duration)
 
+    if show_output_manhattan:
+        print(f"Execution time: {duration:.2f} seconds")
+
+    if result_ucs is None and result_misplaced is None and result_manhattan is None:
+        print("No solution found.")
+
+    #matplotlib nodes expanded by algorithm
+    plt.figure(figsize=(9, 3))
+    plt.bar(algorithms, nodes_expanded_list)
+    plt.xlabel('Algorithm')
+    plt.ylabel('Nodes Expanded')
+    plt.title('Nodes Expanded by Algorithm')
+    plt.tight_layout()
+    plt.show()
+
+    #matplotlib max queue size by algorithm
+    plt.figure(figsize=(9, 3))
+    plt.bar(algorithms, max_queue_size_list)
+    plt.xlabel('Algorithm')
+    plt.ylabel('Max Queue Size')
+    plt.title('Max Queue Size by Algorithm')
+    plt.show()
 
 if __name__ == "__main__":
     main()
