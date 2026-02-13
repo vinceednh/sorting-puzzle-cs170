@@ -50,37 +50,8 @@ def uniform_cost_search(start_state, goal_state, show_output = True):
 
     return None, nodes_expanded, max_queue_size
 
-def misplaced_tiles_heuristic(state, goal_state):
-    count = 0
-    for i in range(state.size):
-        for j in range(state.size):
-
-            # Skips the blank tile
-            if state.board[i][j] != 0:
-                if state.board[i][j] != goal_state[i][j]:
-                    count += 1
-
-    return count
-
-def manhattan_distance_heuristic(state, goal_positions):
-    # This is the sum of distances for each tile to the goal
-    distance = 0
-    for i in range(state.size):
-        for j in range(state.size):
-            value = state.board[i][j]
-
-            if value != 0:
-                # Gets the goal position for the current tile
-                goal_position = goal_positions[value]
-                goal_row = goal_position[0]
-                goal_col = goal_position[1]
-
-                # Manhattan distance
-                distance += abs(i - goal_row) + abs(j - goal_col)
-
-    return distance
-
-def a_star_search(start_state, goal_state, heuristic, show_output = True):
+def a_star_search_misplaced(start_state, goal_state, show_output = True):
+    # Using a priority queue with the start state
     frontier = []
     visited = set()
     nodes_expanded = 0
@@ -90,6 +61,73 @@ def a_star_search(start_state, goal_state, heuristic, show_output = True):
     heapq.heappush(frontier, (0, counter, start_state))
     counter += 1
 
+    while frontier:
+        max_queue_size = max(max_queue_size, len(frontier))
+
+        # Pop the state with the lowest cost + heuristic
+        item = heapq.heappop(frontier)
+        current = item[2]
+
+        # Makes sure we don't revisit states we've already seen
+        state_tuple = current.to_tuple()
+        if state_tuple in visited:
+            continue
+
+        visited.add(state_tuple)
+        nodes_expanded += 1
+
+        # Calculate the misplaced tiles for the current state
+        h_val = 0
+        for i in range(current.size):
+            for j in range(current.size):
+                if current.board[i][j] != 0:
+                    if current.board[i][j] != goal_state[i][j]:
+                        h_val += 1
+
+        # Prints the output if the user selected to see it
+        if show_output:
+            print(f"The best state to expand with g(n) = {current.cost} and h(n) = {h_val} is...")
+            for row in current.board:
+                print(row)
+            print()
+        
+        # Checks if we've reached the goal state
+        if current.is_goal(goal_state):
+            if show_output:
+                print("Goal reached!")
+                print(f"Solution depth was {current.cost}")
+                print(f"Number of nodes expanded: {nodes_expanded}")
+                print(f"Max queue size: {max_queue_size}")
+            return current, nodes_expanded, max_queue_size
+
+        # Calculate the misplaced tiles for the neighbors and add them to the frontier
+        neighbors = current.get_neighbors()
+        for n in neighbors:
+            h = 0
+            for i in range(n.size):
+                for j in range(n.size):
+                    if n.board[i][j] != 0:
+                        if n.board[i][j] != goal_state[i][j]:
+                            h += 1
+
+            priority = n.cost + h
+            heapq.heappush(frontier, (priority, counter, n))
+            counter += 1
+
+    return None, nodes_expanded, max_queue_size
+
+def a_star_search_manhattan(start_state, goal_state, show_output = True):
+    # Using a priority queue with the start state
+    frontier = []
+    visited = set()
+    nodes_expanded = 0
+    max_queue_size = 0
+    counter = 0
+
+    heapq.heappush(frontier, (0, counter, start_state))
+    counter += 1
+
+    # Computes the positions of each tile in the goal state
     goal_positions = {}
     for i in range(len(goal_state)):
         for j in range(len(goal_state)):
@@ -98,9 +136,12 @@ def a_star_search(start_state, goal_state, heuristic, show_output = True):
 
     while frontier:
         max_queue_size = max(max_queue_size, len(frontier))
+
+        # Pop the state with the lowest cost + heuristic
         item = heapq.heappop(frontier)
         current = item[2]
-        
+
+        # Makes sure we don't revisit states we've already seen
         state_tuple = current.to_tuple()
         if state_tuple in visited:
             continue
@@ -108,19 +149,25 @@ def a_star_search(start_state, goal_state, heuristic, show_output = True):
         visited.add(state_tuple)
         nodes_expanded += 1
 
-        if heuristic == 'misplaced':
-            h_val = misplaced_tiles_heuristic(current, goal_state)
-        elif heuristic == 'manhattan':
-            h_val = manhattan_distance_heuristic(current, goal_positions)
-        else:
-            h_val = 0
-        
+        # Calculate the Manhattan distance for the current state
+        h_val = 0
+        for i in range(current.size):
+            for j in range(current.size):
+                value = current.board[i][j]
+                if value != 0:
+                    goal_position = goal_positions[value]
+                    goal_row = goal_position[0]
+                    goal_col = goal_position[1]
+                    h_val += abs(i - goal_row) + abs(j - goal_col)
+
+        # Prints the output if the user selected to see it
         if show_output:
             print(f"The best state to expand with g(n) = {current.cost} and h(n) = {h_val} is...")
             for row in current.board:
                 print(row)
             print()
-
+        
+        # Checks if we've reached the goal state
         if current.is_goal(goal_state):
             if show_output:
                 print("Goal reached!")
@@ -128,17 +175,20 @@ def a_star_search(start_state, goal_state, heuristic, show_output = True):
                 print(f"Number of nodes expanded: {nodes_expanded}")
                 print(f"Max queue size: {max_queue_size}")
             return current, nodes_expanded, max_queue_size
-        
+
+        # Calculate the Manhattan distance for the neighbors and add them to the frontier
         neighbors = current.get_neighbors()
         for n in neighbors:
-            if heuristic == 'misplaced':
-                h = misplaced_tiles_heuristic(n, goal_state)
-            elif heuristic == 'manhattan':
-                h = manhattan_distance_heuristic(n, goal_positions)
-            else:
-                h = 0
+            h = 0
+            for i in range(n.size):
+                for j in range(n.size):
+                    value = n.board[i][j]
+                    if value != 0:
+                        goal_position = goal_positions[value]
+                        goal_row = goal_position[0]
+                        goal_col = goal_position[1]
+                        h += abs(i - goal_row) + abs(j - goal_col)
 
-            # g(n) + h(n) is the priority for A* search
             priority = n.cost + h
             heapq.heappush(frontier, (priority, counter, n))
             counter += 1

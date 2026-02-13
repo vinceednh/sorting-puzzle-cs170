@@ -1,7 +1,7 @@
 import time
 import matplotlib.pyplot as plt
 from puzzle import PuzzleState
-from search import uniform_cost_search, a_star_search
+from search import uniform_cost_search, a_star_search_misplaced, a_star_search_manhattan
 
 # This makes the size of the board so it can be run with multiple different sizes
 def make_goal(size):
@@ -74,7 +74,7 @@ def main():
 
     # A* Search with Misplaced Tiles Heuristic
     start_time = time.time()
-    result_misplaced, nodes_expanded_misplaced, max_queue_size_misplaced = a_star_search(start_state, goal, 'misplaced', show_output_misplaced)
+    result_misplaced, nodes_expanded_misplaced, max_queue_size_misplaced = a_star_search_misplaced(start_state, goal, show_output_misplaced)
     end_time = time.time()
     duration = end_time - start_time
     nodes_expanded_list.append(nodes_expanded_misplaced)
@@ -86,7 +86,7 @@ def main():
 
     # A* Search with Manhattan Distance Heuristic
     start_time = time.time()
-    result_manhattan, nodes_expanded_manhattan, max_queue_size_manhattan = a_star_search(start_state, goal, 'manhattan', show_output_manhattan)
+    result_manhattan, nodes_expanded_manhattan, max_queue_size_manhattan = a_star_search_manhattan(start_state, goal, show_output_manhattan)
     end_time = time.time()
     duration = end_time - start_time
     nodes_expanded_list.append(nodes_expanded_manhattan)
